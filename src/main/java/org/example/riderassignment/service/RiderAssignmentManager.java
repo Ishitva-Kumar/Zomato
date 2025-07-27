@@ -7,42 +7,18 @@ import org.example.riderassignment.models.OrderStatus;
 import org.example.riderassignment.models.Rider;
 import org.example.riderassignment.strategy.DistanceStrategy;
 
-import java.util.List;
 
-public class RiderAssignmentManager {
-    private final List<Rider> riders;
-    private final DistanceStrategy distanceStrategy;
+public class RiderSystemApp {
+    public static void main(String[] args) {
+        List<Rider> riders = Arrays.asList(
+                new Rider("R1", new Location(12.9716, 77.5946), 4.7),
+                new Rider("R2", new Location(12.9611, 77.6012), 4.5),
+                new Rider("R3", new Location(12.9565, 77.6000), 4.9)
+        );
 
-    public RiderAssignmentManager(List<Rider> riders, DistanceStrategy distanceStrategy) {
-        this.riders = riders;
-        this.distanceStrategy = distanceStrategy;
-    }
+        DistanceStrategy strategy = new HaversineDistanceStrategy();
 
-    public Rider assignRider(Order order) {
-        Rider bestRider = null;
-        double minScore = Double.MAX_VALUE; // scroring algo
-
-        for (Rider rider : riders) {
-            if (!rider.isAvailable()) continue;
-
-            double distance = distanceStrategy.calculate(rider.getCurrentLocation(), order.getDeliveryLocation());
-            double score = distance - rider.getRating();
-
-            if (score < minScore) {
-                minScore = score;
-                bestRider = rider;
-            }
-        }
-
-        if (bestRider != null) {
-            bestRider.setAvailable(false);
-            order.setStatus(OrderStatus.ASSIGNED);
-            System.out.println("Assigned Rider: " + bestRider.getRiderId() + " to Order: " + order.getOrderId());
-        } else { //edge case
-            System.out.println("No available riders for Order: " + order.getOrderId());
-        }
-
-        return bestRider;
+        RiderAssignmentCLI cli = new RiderAssignmentCLI(riders, strategy);
+        cli.start();
     }
 }
-
